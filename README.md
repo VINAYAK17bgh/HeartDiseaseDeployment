@@ -14,7 +14,7 @@
 
 ##  Live Deployment
 
-**Render URL:** `https://your-app-name.onrender.com`
+**Render URL:** `https://heartdiseasedeployment-jcoy.onrender.com/`
 
 > Replace with your actual Render deployment URL after deployment.
 
