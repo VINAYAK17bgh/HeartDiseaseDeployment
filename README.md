@@ -12,7 +12,7 @@
 
 ---
 
-## 🚀 Live Deployment
+##  Live Deployment
 
 **Render URL:** `https://your-app-name.onrender.com`
 
@@ -20,13 +20,13 @@
 
 ---
 
-## 📌 Objective
+##  Objective
 
 Predict whether a patient has heart disease using clinical parameters via a Logistic Regression model deployed as a **Flask REST API** on **Render** cloud platform.
 
 ---
 
-## 📂 Repository Structure
+##  Repository Structure
 
 ```
 HeartDiseaseDeployment/
@@ -44,7 +44,7 @@ HeartDiseaseDeployment/
 
 ---
 
-## 📊 Dataset
+##  Dataset
 
 | Detail        | Value                                              |
 |---------------|----------------------------------------------------|
@@ -170,7 +170,7 @@ curl -X POST https://your-app-name.onrender.com/predict \
 
 ---
 
-## 📈 Model Performance
+##  Model Performance
 
 | Metric      | Value  |
 |-------------|--------|
@@ -184,7 +184,7 @@ curl -X POST https://your-app-name.onrender.com/predict \
 
 ---
 
-## ☁️ Render Deployment Steps
+##  Render Deployment Steps
 
 1. Push this repository to GitHub.
 2. Log in at [render.com](https://render.com) and click **New → Web Service**.
