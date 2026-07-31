@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Heart Disease Prediction tool powered by Logistic Regression and Flask REST API" />
+  <title>Heart Disease Prediction | ML Deployment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET & BASE ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clr-bg:       #0d1117;
+      --clr-card:     #161b22;
+      --clr-border:   #30363d;
+      --clr-accent:   #e84393;
+      --clr-accent2:  #7c3aed;
+      --clr-text:     #e6edf3;
+      --clr-muted:    #8b949e;
+      --clr-ok:       #3fb950;
+      --clr-warn:     #f85149;
+      --radius:       14px;
+      --shadow:       0 8px 32px rgba(0,0,0,.5);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--clr-accent2), var(--clr-accent));
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 40%, var(--clr-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    header p {
+      color: var(--clr-muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    /* ── CARD ──────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 760px;
+      padding: 36px 40px;
+    }
+
+    /* ── SECTION TITLE ─────────────────────────────────────────────────── */
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--clr-accent);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    /* ── GRID ──────────────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── FORM INPUTS ───────────────────────────────────────────────────── */
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--clr-muted);
+      margin-bottom: 6px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      color: var(--clr-text);
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: var(--clr-accent2);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.25);
+    }
+
+    .field select option { background: #161b22; }
+
+    /* ── SUBMIT BUTTON ─────────────────────────────────────────────────── */
+    .btn-predict {
+      margin-top: 28px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--clr-accent2), var(--clr-accent));
+      color: #fff;
+      letter-spacing: 0.5px;
+      transition: opacity .2s, transform .15s;
+    }
+
+    .btn-predict:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-predict:active { transform: translateY(0); }
+
+    /* ── RESULT BOX ────────────────────────────────────────────────────── */
+    #result-box {
+      display: none;
+      margin-top: 24px;
+      padding: 18px 22px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      animation: fadeIn .4s ease;
+    }
+
+    .result-ok   { background: rgba(63,185,80,.12);  border: 1px solid var(--clr-ok);   color: var(--clr-ok);   }
+    .result-warn { background: rgba(248,81,73,.12);  border: 1px solid var(--clr-warn); color: var(--clr-warn); }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── DIVIDER ───────────────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--clr-border); margin: 32px 0; }
+
+    /* ── INFO TABLE ────────────────────────────────────────────────────── */
+    .info-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .info-table th, .info-table td { padding: 8px 12px; border-bottom: 1px solid var(--clr-border); }
+    .info-table th { color: var(--clr-muted); font-weight: 500; text-align: left; }
+    .info-table td:last-child { color: var(--clr-accent); font-family: monospace; }
+
+    /* ── FOOTER ────────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 40px;
+      font-size: 0.78rem;
+      color: var(--clr-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="badge">AI‑ML Assignment 10 · VIT Bhopal</div>
+    <h1>Heart Disease Prediction</h1>
+    <p>Logistic Regression · Flask REST API · Render Cloud Deployment</p>
+  </header>
+
+  <!-- ── MAIN CARD ────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <p class="section-title">Patient Clinical Parameters</p>
+
+    <form id="predict-form" novalidate>
+      <div class="grid">
+
+        <!-- age -->
+        <div class="field">
+          <label for="age">Age (years)</label>
+          <input type="number" id="age" name="age" placeholder="e.g. 63" min="1" max="120" required />
+        </div>
+
+        <!-- sex -->
+        <div class="field">
+          <label for="sex">Sex</label>
+          <select id="sex" name="sex" required>
+            <option value="" disabled selected>Select</option>
+            <option value="1">Male (1)</option>
+            <option value="0">Female (0)</option>
+          </select>
+        </div>
+
+        <!-- cp -->
+        <div class="field">
+          <label for="cp">Chest Pain Type (cp)</label>
+          <select id="cp" name="cp" required>
+            <option value="" disabled selected>Select</option>
+            <option value="0">Typical Angina (0)</option>
+            <option value="1">Atypical Angina (1)</option>
+            <option value="2">Non-Anginal (2)</option>
+            <option value="3">Asymptomatic (3)</option>
+          </select>
+        </div>
+
+        <!-- trestbps -->
+        <div class="field">
+          <label for="trestbps">Resting BP (mmHg)</label>
+          <input type="number" id="trestbps" name="trestbps" placeholder="e.g. 145" required />
+        </div>
+
+        <!-- chol -->
+        <div class="field">
+          <label for="chol">Serum Cholesterol (mg/dL)</label>
+          <input type="number" id="chol" name="chol" placeholder="e.g. 233" required />
+        </div>
+
+        <!-- fbs -->
+        <div class="field">
+          <label for="fbs">Fasting Blood Sugar &gt;120 mg/dL</label>
+          <select id="fbs" name="fbs" required>
+            <option value="" disabled selected>Select</option>
+            <option value="1">True (1)</option>
+            <option value="0">False (0)</option>
+          </select>
+        </div>
+
+        <!-- restecg -->
+        <div class="field">
+          <label for="restecg">Resting ECG (restecg)</label>
+          <select id="restecg" name="restecg" required>
+            <option value="" disabled selected>Select</option>
+            <option value="0">Normal (0)</option>
+            <option value="1">ST-T Abnormality (1)</option>
+            <option value="2">LV Hypertrophy (2)</option>
+          </select>
+        </div>
+
+        <!-- thalach -->
+        <div class="field">
+          <label for="thalach">Max Heart Rate Achieved</label>
+          <input type="number" id="thalach" name="thalach" placeholder="e.g. 150" required />
+        </div>
+
+        <!-- exang -->
+        <div class="field">
+          <label for="exang">Exercise Induced Angina</label>
+          <select id="exang" name="exang" required>
+            <option value="" disabled selected>Select</option>
+            <option value="1">Yes (1)</option>
+            <option value="0">No (0)</option>
+          </select>
+        </div>
+
+        <!-- oldpeak -->
+        <div class="field">
+          <label for="oldpeak">ST Depression (oldpeak)</label>
+          <input type="number" step="0.1" id="oldpeak" name="oldpeak" placeholder="e.g. 2.3" required />
+        </div>
+
+        <!-- slope -->
+        <div class="field">
+          <label for="slope">Slope of ST Segment</label>
+          <select id="slope" name="slope" required>
+            <option value="" disabled selected>Select</option>
+            <option value="0">Upsloping (0)</option>
+            <option value="1">Flat (1)</option>
+            <option value="2">Downsloping (2)</option>
+          </select>
+        </div>
+
+        <!-- ca -->
+        <div class="field">
+          <label for="ca">Major Vessels (0–3)</label>
+          <input type="number" id="ca" name="ca" placeholder="e.g. 0" min="0" max="3" required />
+        </div>
+
+        <!-- thal -->
+        <div class="field">
+          <label for="thal">Thalassemia (thal)</label>
+          <select id="thal" name="thal" required>
+            <option value="" disabled selected>Select</option>
+            <option value="0">Normal (0)</option>
+            <option value="1">Fixed Defect (1)</option>
+            <option value="2">Reversible Defect (2)</option>
+            <option value="3">Other (3)</option>
+          </select>
+        </div>
+
+      </div><!-- /.grid -->
+
+      <button type="submit" class="btn-predict" id="predict-btn">
+        ⚡ Predict Heart Disease
+      </button>
+    </form>
+
+    <!-- ── RESULT ─────────────────────────────────────────────────────────── -->
+    <div id="result-box"></div>
+
+    <!-- ── FEATURE TABLE ──────────────────────────────────────────────────── -->
+    <div class="divider"></div>
+    <p class="section-title">Feature Reference Guide</p>
+    <table class="info-table">
+      <thead>
+        <tr><th>Feature</th><th>Description</th><th>Type / Range</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>age</td><td>Age of the patient</td><td>Integer (years)</td></tr>
+        <tr><td>sex</td><td>Sex (1=Male, 0=Female)</td><td>Binary</td></tr>
+        <tr><td>cp</td><td>Chest pain type</td><td>0–3</td></tr>
+        <tr><td>trestbps</td><td>Resting blood pressure</td><td>mmHg</td></tr>
+        <tr><td>chol</td><td>Serum cholesterol</td><td>mg/dL</td></tr>
+        <tr><td>fbs</td><td>Fasting blood sugar &gt;120 mg/dL</td><td>Binary</td></tr>
+        <tr><td>restecg</td><td>Resting ECG results</td><td>0–2</td></tr>
+        <tr><td>thalach</td><td>Maximum heart rate achieved</td><td>Integer</td></tr>
+        <tr><td>exang</td><td>Exercise-induced angina</td><td>Binary</td></tr>
+        <tr><td>oldpeak</td><td>ST depression induced by exercise</td><td>Float</td></tr>
+        <tr><td>slope</td><td>Slope of peak exercise ST segment</td><td>0–2</td></tr>
+        <tr><td>ca</td><td>Number of major vessels coloured by fluoroscopy</td><td>0–3</td></tr>
+        <tr><td>thal</td><td>Thalassemia</td><td>0–3</td></tr>
+      </tbody>
+    </table>
+  </div><!-- /.card -->
+
+  <footer>
+    Heart Disease Prediction API &nbsp;|&nbsp; AI-ML Assignment 10 &nbsp;|&nbsp; VIT Bhopal University
+  </footer>
+
+  <!-- ── JAVASCRIPT ────────────────────────────────────────────────────────── -->
+  <script>
+    const form       = document.getElementById('predict-form');
+    const resultBox  = document.getElementById('result-box');
+    const btn        = document.getElementById('predict-btn');
+
+    const FEATURES = [
+      'age','sex','cp','trestbps','chol',
+      'fbs','restecg','thalach','exang',
+      'oldpeak','slope','ca','thal'
+    ];
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Build payload from form fields
+      const payload = {};
+      for (const f of FEATURES) {
+        const el = document.getElementById(f);
+        const val = el.value.trim();
+        if (val === '') {
+          showResult(`⚠ Please fill in the "${f}" field.`, 'warn');
+          el.focus();
+          return;
+        }
+        payload[f] = parseFloat(val);
+      }
+
+      // UI feedback
+      btn.textContent  = '⏳ Predicting…';
+      btn.disabled     = true;
+      resultBox.style.display = 'none';
+
+      try {
+        const res  = await fetch('/predict', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (data.prediction) {
+          const isDisease = data.prediction.toLowerCase().includes('detected');
+          showResult(
+            isDisease
+              ? `🚨 ${data.prediction}`
+              : `✅ ${data.prediction}`,
+            isDisease ? 'warn' : 'ok'
+          );
+        } else {
+          showResult(`Error: ${data.error || 'Unknown error'}`, 'warn');
+        }
+      } catch (err) {
+        showResult('❌ Network error. Is the Flask server running?', 'warn');
+      } finally {
+        btn.textContent = '⚡ Predict Heart Disease';
+        btn.disabled    = false;
+      }
+    });
+
+    function showResult(msg, type) {
+      resultBox.textContent    = msg;
+      resultBox.className      = type === 'ok' ? 'result-ok' : 'result-warn';
+      resultBox.style.display  = 'block';
+    }
+  </script>
+
+</body>
+</html>
