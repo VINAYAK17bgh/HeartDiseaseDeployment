@@ -186,15 +186,20 @@ curl -X POST https://your-app-name.onrender.com/predict \
 
 ##  Render Deployment Steps
 
+> **Note:** A `render.yaml` is included in this repository — Render will auto-detect it and configure the service automatically.
+
 1. Push this repository to GitHub.
 2. Log in at [render.com](https://render.com) and click **New → Web Service**.
 3. Connect your GitHub account and select this repository.
-4. Configure the service:
+4. Configure the service (or let `render.yaml` auto-fill these):
    - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `python app.py`
+   - **Start Command:** `gunicorn app:app`
    - **Environment:** Python 3
-5. Click **Create Web Service** and wait for deployment.
+   - **Python Version:** 3.11.0
+5. Click **Create Web Service** and wait ~3–5 minutes for deployment.
 6. Access the live URL: `https://your-app-name.onrender.com`
+
+> ⚠️ Do **not** use `python app.py` as the start command on Render — use `gunicorn app:app` instead.
 
 ---
 
